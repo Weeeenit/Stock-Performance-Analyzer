@@ -157,22 +157,21 @@ def calculate_monthly_returns(df):
 
     df = df.copy()
 
-    monthly = (
-        df.set_index("Date")["Close"]
-        .resample("ME")
-        .last()
-        .pct_change() * 100
-    )
+    df = df.set_index("Date")
 
-    monthly = monthly.to_frame("Return")
+    monthly = df["Close"].resample("M").last()
 
-    monthly["Year"] = monthly.index.year
-    monthly["Month"] = monthly.index.strftime("%b")
+    monthly_returns = monthly.pct_change() * 100
 
-    heatmap = monthly.pivot(
+    monthly_df = monthly_returns.reset_index()
+
+    monthly_df["Year"] = monthly_df["Date"].dt.year
+    monthly_df["Month"] = monthly_df["Date"].dt.strftime("%b")
+
+    heatmap = monthly_df.pivot(
         index="Year",
         columns="Month",
-        values="Return"
+        values="Close"
     )
 
     month_order = [
@@ -187,17 +186,17 @@ def calculate_monthly_returns(df):
 
 def calculate_yearly_returns(df):
 
-    yearly = (
-        df.set_index("Date")["Close"]
-        .resample("YE")
-        .last()
-        .pct_change() * 100
-    )
+    df = df.copy()
 
-    yearly.index = yearly.index.year
+    df = df.set_index("Date")
 
-    return yearly
+    yearly = df["Close"].resample("Y").last()
 
+    yearly_returns = yearly.pct_change() * 100
+
+    yearly_returns.index = yearly_returns.index.year
+
+    return yearly_returns
 
 def get_return_statistics(df):
 
