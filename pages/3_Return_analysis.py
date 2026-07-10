@@ -116,29 +116,29 @@ st.divider()
 # Monthly Return Heatmap
 # =====================================================
 
-st.subheader("Monthly Return Heatmap")
+# st.subheader("Monthly Return Heatmap")
 
-heatmap = calculate_monthly_returns(df)
+# heatmap = calculate_monthly_returns(df)
 
-fig = go.Figure(
-    data=go.Heatmap(
-        z=heatmap.values,
-        x=heatmap.columns,
-        y=heatmap.index,
-        colorscale="RdYlGn",
-        colorbar_title="% Return",
-        hoverongaps=False
-    )
-)
+# fig = go.Figure(
+#     data=go.Heatmap(
+#         z=heatmap.values,
+#         x=heatmap.columns,
+#         y=heatmap.index,
+#         colorscale="RdYlGn",
+#         colorbar_title="% Return",
+#         hoverongaps=False
+#     )
+# )
 
-fig.update_layout(
-    template="plotly_dark",
-    height=500
-)
+# fig.update_layout(
+#     template="plotly_dark",
+#     height=500
+# )
 
-st.plotly_chart(fig, width="stretch")
+# st.plotly_chart(fig, width="stretch")
 
-st.divider()
+# st.divider()
 
 # =====================================================
 # Yearly Returns
