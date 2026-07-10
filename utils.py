@@ -159,11 +159,13 @@ def calculate_monthly_returns(df):
 
     df = df.set_index("Date")
 
-    monthly = df["Close"].resample("M").last()
+    monthly = df["Close"].resample("ME").last()
 
     monthly_returns = monthly.pct_change() * 100
 
     monthly_df = monthly_returns.reset_index()
+
+    monthly_df.columns = ["Date", "Return"]
 
     monthly_df["Year"] = monthly_df["Date"].dt.year
     monthly_df["Month"] = monthly_df["Date"].dt.strftime("%b")
@@ -171,7 +173,7 @@ def calculate_monthly_returns(df):
     heatmap = monthly_df.pivot(
         index="Year",
         columns="Month",
-        values="Close"
+        values="Return"
     )
 
     month_order = [
@@ -190,7 +192,7 @@ def calculate_yearly_returns(df):
 
     df = df.set_index("Date")
 
-    yearly = df["Close"].resample("Y").last()
+    yearly = df["Close"].resample("YE").last()
 
     yearly_returns = yearly.pct_change() * 100
 
