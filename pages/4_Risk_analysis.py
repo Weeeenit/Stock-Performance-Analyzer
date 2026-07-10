@@ -41,24 +41,36 @@ date_range = st.sidebar.date_input(
 )
 
 if len(date_range) == 2:
-
     start_date, end_date = date_range
-
     df = filter_data(df, start_date, end_date)
+
+# =====================================================
+# Safety Check
+# =====================================================
+
+if len(df) < 30:
+    st.warning("Not enough data for risk analysis.")
+    st.stop()
 
 # =====================================================
 # Calculations
 # =====================================================
 
-volatility = calculate_volatility(df)
+try:
 
-sharpe = calculate_sharpe_ratio(df)
+    volatility = calculate_volatility(df)
+    sharpe = calculate_sharpe_ratio(df)
+    var95 = calculate_var(df)
 
-var95 = calculate_var(df)
+    df = calculate_drawdown(df)
+    df = rolling_volatility(df)
 
-df = calculate_drawdown(df)
+except Exception as e:
 
-df = rolling_volatility(df)
+    st.error(f"Calculation Error: {e}")
+    st.stop()
+
+returns = df["Close"].pct_change().dropna() * 100
 
 max_drawdown = df["Drawdown"].min()
 
@@ -112,9 +124,7 @@ fig = px.line(
 fig.update_layout(
     template="plotly_dark",
     height=450,
-    hovermode="x unified",
-    xaxis_title="Date",
-    yaxis_title="Volatility (%)"
+    hovermode="x unified"
 )
 
 st.plotly_chart(
@@ -125,12 +135,12 @@ st.plotly_chart(
 st.divider()
 
 # =====================================================
-# Drawdown Chart
+# Drawdown
 # =====================================================
 
 st.subheader("Drawdown")
 
-fig = px.area(
+fig = px.line(
     df,
     x="Date",
     y="Drawdown"
@@ -139,9 +149,7 @@ fig = px.area(
 fig.update_layout(
     template="plotly_dark",
     height=450,
-    hovermode="x unified",
-    xaxis_title="Date",
-    yaxis_title="Drawdown (%)"
+    hovermode="x unified"
 )
 
 st.plotly_chart(
@@ -155,20 +163,19 @@ st.divider()
 # Return Distribution
 # =====================================================
 
-returns = df["Close"].pct_change() * 100
+st.subheader("Daily Return Distribution")
 
-st.subheader("Return Distribution")
+hist_df = returns.to_frame(name="Daily Return")
 
 fig = px.histogram(
-    returns,
+    hist_df,
+    x="Daily Return",
     nbins=60
 )
 
 fig.update_layout(
     template="plotly_dark",
-    height=450,
-    xaxis_title="Daily Return (%)",
-    yaxis_title="Frequency"
+    height=450
 )
 
 st.plotly_chart(
@@ -179,43 +186,10 @@ st.plotly_chart(
 st.divider()
 
 # =====================================================
-# Risk Interpretation
-# =====================================================
-
-st.subheader("Risk Interpretation")
-
-if risk == "Low":
-
-    st.success(
-        """
-        This asset has relatively low historical volatility.
-        Price movements have generally been stable over the selected period.
-        """
-    )
-
-elif risk == "Medium":
-
-    st.warning(
-        """
-        This asset exhibits moderate volatility.
-        Investors should expect noticeable price fluctuations.
-        """
-    )
-
-else:
-
-    st.error(
-        """
-        This asset has experienced high historical volatility.
-        Large price swings increase both potential returns and potential losses.
-        """
-    )
-
-# =====================================================
 # Additional Statistics
 # =====================================================
 
-st.subheader("Additional Risk Statistics")
+st.subheader("Additional Statistics")
 
 left, right = st.columns(2)
 
@@ -227,18 +201,44 @@ with left:
     )
 
     st.metric(
-        "Maximum Daily Gain",
+        "Best Daily Return",
         f"{returns.max():.2f}%"
     )
 
 with right:
 
     st.metric(
-        "Worst Daily Loss",
+        "Worst Daily Return",
         f"{returns.min():.2f}%"
     )
 
     st.metric(
         "Daily Return Std Dev",
         f"{returns.std():.2f}%"
+    )
+
+st.divider()
+
+# =====================================================
+# Interpretation
+# =====================================================
+
+st.subheader("Risk Interpretation")
+
+if risk == "Low":
+
+    st.success(
+        "This stock has shown relatively low historical volatility."
+    )
+
+elif risk == "Medium":
+
+    st.warning(
+        "This stock has shown moderate historical volatility."
+    )
+
+else:
+
+    st.error(
+        "This stock has shown high historical volatility."
     )
